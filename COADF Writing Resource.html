@@ -1,0 +1,1555 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>COADF — Voice-first Text Response</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #1A1A18;
+  --paper: #F5F0E8;
+  --cream: #EDE7D6;
+  --warm: #E8DFC8;
+  --muted: #7A7265;
+  --faint: #B8B0A0;
+  --rule: #D4CCC0;
+  --gold: #C4922A;
+  --gold-lt: #F0E0B8;
+  --red: #B83A2A;
+  --red-lt: #F5DDD8;
+  --green: #3A6B4A;
+  --green-lt: #D8EDE0;
+  --accent: #2A4A6B;
+  --accent-lt: #D8E5F0;
+  --serif: 'Instrument Serif', Georgia, serif;
+  --sans: 'DM Sans', system-ui, sans-serif;
+  --mono: 'DM Mono', ui-monospace, monospace;
+  --r: 10px;
+  --r2: 6px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--sans);
+  font-size:15px;
+  line-height:1.6;
+  color:var(--ink);
+  background:var(--paper);
+  background-image:
+    radial-gradient(ellipse 800px 600px at 20% 10%, rgba(196,146,42,.06) 0%, transparent 70%),
+    radial-gradient(ellipse 600px 400px at 80% 80%, rgba(42,74,107,.05) 0%, transparent 70%);
+  min-height:100vh;
+}
+
+/* ── HEADER ── */
+header{
+  position:sticky;top:0;z-index:50;
+  background:rgba(245,240,232,.92);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--rule);
+}
+.hdr-inner{
+  max-width:1280px;margin:0 auto;padding:0 24px;
+}
+.hdr-top{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:16px;padding:14px 0 10px;
+}
+.brand-title{
+  font-family:var(--serif);
+  font-size:20px;
+  letter-spacing:.01em;
+  color:var(--ink);
+}
+.brand-sub{
+  font-size:12px;color:var(--muted);margin-top:2px;
+  font-weight:300;
+}
+.hdr-tools{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  justify-content:flex-end;
+}
+.search-wrap{
+  display:flex;align-items:center;gap:8px;
+  border:1px solid var(--rule);background:white;
+  border-radius:999px;padding:7px 14px;min-width:240px;
+  transition:border-color .15s;
+}
+.search-wrap:focus-within{border-color:var(--gold);}
+.search-wrap input{
+  border:0;outline:none;background:transparent;
+  font-family:var(--sans);font-size:13px;color:var(--ink);width:100%;
+}
+.search-wrap input::placeholder{color:var(--faint);}
+.btn{
+  border:1px solid var(--rule);background:white;
+  color:var(--muted);padding:7px 12px;border-radius:999px;
+  font-family:var(--sans);font-size:13px;cursor:pointer;
+  transition:all .12s;white-space:nowrap;
+}
+.btn:hover{border-color:var(--ink);color:var(--ink);}
+.btn.gold{border-color:var(--gold);color:var(--gold);background:var(--gold-lt);}
+.btn.gold:hover{background:var(--gold);color:white;}
+
+.nav-tabs{
+  display:flex;flex-wrap:wrap;gap:6px;padding:8px 0 12px;
+}
+.nav-chip{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 12px;border-radius:999px;
+  border:1px solid var(--rule);background:white;
+  text-decoration:none;font-size:12px;color:var(--muted);
+  font-weight:500;letter-spacing:.01em;transition:all .12s;
+}
+.nav-chip:hover,.nav-chip.active{
+  border-color:var(--gold);color:var(--gold);background:var(--gold-lt);
+}
+.nav-chip .dot{
+  width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.6;
+}
+
+/* ── LAYOUT ── */
+.main-wrap{max-width:1280px;margin:0 auto;padding:24px 24px 64px;}
+.layout{display:grid;grid-template-columns:300px 1fr;gap:16px;align-items:start;}
+@media(max-width:960px){.layout{grid-template-columns:1fr;}}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  position:sticky;top:108px;
+  background:white;border:1px solid var(--rule);border-radius:var(--r);
+  padding:16px;
+}
+@media(max-width:960px){.sidebar{position:static;}}
+.sidebar h2{
+  font-family:var(--serif);font-size:16px;font-weight:400;
+  color:var(--ink);margin-bottom:8px;
+}
+.sidebar p{font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:10px;}
+.callout{
+  border-left:3px solid var(--gold);
+  background:var(--gold-lt);
+  padding:10px 12px;border-radius:0 var(--r2) var(--r2) 0;margin:10px 0;
+}
+.callout.warn{border-left-color:var(--red);background:var(--red-lt);}
+.callout.info{border-left-color:var(--accent);background:var(--accent-lt);}
+.callout.good{border-left-color:var(--green);background:var(--green-lt);}
+.callout p{font-size:13px;color:var(--ink);line-height:1.5;}
+.callout p strong{color:var(--ink);}
+.toc-list{display:flex;flex-direction:column;gap:4px;margin-top:10px;}
+.toc-item{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 10px;border:1px solid var(--rule);border-radius:var(--r2);
+  text-decoration:none;color:var(--muted);font-size:12px;
+  transition:all .12s;background:var(--paper);
+}
+.toc-item:hover{border-color:var(--gold);color:var(--ink);background:var(--gold-lt);}
+.toc-item small{color:var(--faint);font-size:11px;}
+.divider{height:1px;background:var(--rule);margin:12px 0;}
+.kbd{
+  font-family:var(--mono);font-size:11px;
+  padding:2px 6px;border:1px solid var(--rule);
+  border-radius:4px;background:var(--cream);color:var(--muted);
+}
+.pill-row{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;}
+.pill{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 10px;border-radius:999px;border:1px solid var(--rule);
+  background:var(--cream);color:var(--muted);font-size:12px;
+}
+.pill strong{color:var(--ink);font-weight:600;}
+
+/* ── CONTENT STACK ── */
+.stack{display:flex;flex-direction:column;gap:14px;}
+
+/* ── CARD ── */
+.card{
+  background:white;border:1px solid var(--rule);
+  border-radius:var(--r);overflow:hidden;
+}
+.card-hd{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:14px 16px 12px;
+  border-bottom:1px solid var(--rule);
+  background:var(--paper);
+}
+.card-hd h3{
+  font-family:var(--serif);font-size:17px;font-weight:400;
+  letter-spacing:.01em;color:var(--ink);
+}
+.tag{
+  font-size:11px;color:var(--muted);
+  border:1px solid var(--rule);border-radius:999px;
+  padding:4px 10px;background:white;white-space:nowrap;font-style:italic;
+}
+.card-bd{padding:16px;}
+
+/* ── DETAILS / ACCORDION ── */
+details{
+  border:1px solid var(--rule);border-radius:var(--r2);
+  overflow:hidden;margin-bottom:8px;background:var(--paper);
+}
+details:last-child{margin-bottom:0;}
+summary{
+  list-style:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:12px;padding:11px 14px;
+  transition:background .1s;
+}
+summary:hover{background:var(--warm);}
+summary::-webkit-details-marker{display:none;}
+.sum-l{display:flex;align-items:center;gap:10px;flex:1;min-width:0;}
+.sum-t{font-weight:500;font-size:14px;color:var(--ink);}
+.sum-s{font-size:12px;color:var(--muted);font-style:italic;}
+.chev{
+  width:16px;height:16px;flex-shrink:0;opacity:.6;
+  transition:transform .15s;
+}
+details[open] .chev{transform:rotate(180deg);}
+.acc-bd{
+  padding:12px 14px;border-top:1px solid var(--rule);
+  background:white;
+}
+
+/* ── COMPARE ── */
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}
+@media(max-width:680px){.compare{grid-template-columns:1fr;}}
+.box{
+  border:1px solid var(--rule);border-radius:var(--r2);
+  padding:12px 14px;background:var(--paper);
+}
+.box h4{
+  font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:8px;
+}
+.box.bad{border-color:rgba(184,58,42,.35);background:var(--red-lt);}
+.box.bad h4{color:var(--red);}
+.box.good{border-color:rgba(58,107,74,.35);background:var(--green-lt);}
+.box.good h4{color:var(--green);}
+.box p,.box .text{font-size:13px;line-height:1.6;color:var(--ink);}
+.gold-text{color:var(--gold);font-weight:600;}
+
+/* ── SCREEN / CODE BOX ── */
+.screen{
+  border:1px solid var(--rule);background:var(--cream);
+  border-radius:var(--r2);padding:14px;margin-top:8px;
+  font-size:13px;line-height:1.7;white-space:pre-wrap;color:var(--ink);
+}
+.screen .scr-title{
+  font-size:11px;color:var(--muted);margin-bottom:10px;
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+}
+.badge{
+  display:inline-flex;align-items:center;gap:6px;
+  border:1px solid var(--rule);background:white;
+  padding:3px 8px;border-radius:999px;
+  color:var(--muted);font-size:11px;font-family:var(--sans);
+}
+.badge strong{color:var(--ink);font-weight:600;}
+
+/* ── TABS ── */
+.tab-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.tab{
+  border:1px solid var(--rule);background:var(--paper);
+  border-radius:999px;padding:7px 14px;font-size:13px;
+  cursor:pointer;color:var(--muted);font-family:var(--sans);
+  font-weight:500;transition:all .12s;
+}
+.tab[aria-selected="true"]{
+  color:var(--gold);border-color:var(--gold);background:var(--gold-lt);
+}
+.hide{display:none!important;}
+
+/* ── PHASE CARDS ── */
+.phase-card{
+  border:1px solid var(--rule);border-radius:var(--r);
+  overflow:hidden;margin-top:4px;
+}
+.phase-hd{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px;background:var(--paper);border-bottom:1px solid var(--rule);
+}
+.phase-num{
+  font-family:var(--serif);font-size:22px;color:var(--faint);
+  font-style:italic;
+}
+.phase-wk{font-size:12px;color:var(--muted);}
+.phase-bd{padding:14px;background:white;}
+.phase-task{
+  background:var(--cream);border:1px solid var(--rule);
+  border-radius:var(--r2);padding:12px 14px;margin-bottom:10px;
+  font-size:13px;line-height:1.7;white-space:pre-wrap;
+}
+.phase-conf{margin-top:12px;}
+.phase-conf h4{
+  font-size:11px;font-weight:600;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:6px;
+}
+.conf-q{
+  display:flex;align-items:flex-start;gap:8px;
+  padding:7px 0;border-bottom:1px solid var(--rule);
+  font-size:13px;color:var(--ink);
+}
+.conf-q:last-child{border-bottom:0;}
+.conf-q::before{
+  content:"→";color:var(--gold);font-size:14px;
+  flex-shrink:0;margin-top:1px;
+}
+
+/* ── BUILDER ── */
+.builder-grid{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:14px;align-items:start;
+}
+@media(max-width:800px){.builder-grid{grid-template-columns:1fr;}}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:10px;}
+label{font-size:12px;color:var(--muted);font-weight:500;letter-spacing:.02em;}
+textarea,select,input[type="text"]{
+  width:100%;border:1px solid var(--rule);background:var(--paper);
+  color:var(--ink);border-radius:var(--r2);padding:9px 11px;
+  outline:none;font-size:13px;font-family:var(--sans);
+  resize:vertical;transition:border-color .12s;
+}
+textarea:focus,select:focus,input[type="text"]:focus{border-color:var(--gold);}
+textarea{min-height:72px;}
+.row{display:flex;gap:8px;flex-wrap:wrap;}
+.row>*{flex:1 1 140px;}
+.output{
+  border:1px solid var(--rule);background:var(--paper);
+  border-radius:var(--r2);padding:14px;min-height:200px;
+  font-size:14px;line-height:1.7;color:var(--ink);
+  white-space:pre-wrap;
+}
+.output .out-meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+.builder-note{
+  border-left:3px solid var(--accent);background:var(--accent-lt);
+  padding:10px 12px;border-radius:0 var(--r2) var(--r2) 0;
+  font-size:12px;line-height:1.5;color:var(--ink);margin-bottom:12px;
+}
+.builder-note strong{color:var(--accent);}
+.output-label{
+  font-size:11px;font-weight:600;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:8px;
+}
+.alt-out{
+  margin-top:10px;border-top:1px solid var(--rule);padding-top:10px;
+}
+
+/* ── BEFORE/AFTER ── */
+.ba-pair{
+  display:grid;grid-template-columns:1fr auto 1fr;
+  gap:8px;align-items:center;margin:10px 0;
+}
+@media(max-width:620px){.ba-pair{grid-template-columns:1fr;}}
+.ba-arrow{
+  font-size:18px;color:var(--faint);text-align:center;
+  padding:0 4px;
+}
+@media(max-width:620px){.ba-arrow{transform:rotate(90deg);}}
+.upgrade-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--gold-lt);border:1px solid var(--gold);
+  color:var(--gold);border-radius:999px;
+  padding:3px 10px;font-size:11px;font-weight:600;
+  margin-bottom:8px;
+}
+
+/* ── EXEMPLARS ── */
+.exemplar-grid{display:flex;flex-direction:column;gap:12px;}
+.ex{
+  border:1px solid var(--rule);border-radius:var(--r);
+  overflow:hidden;
+}
+.ex-hd{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;background:var(--paper);border-bottom:1px solid var(--rule);
+}
+.ex-level{
+  font-size:11px;font-weight:600;letter-spacing:.06em;
+  text-transform:uppercase;padding:3px 9px;border-radius:999px;
+  border:1px solid var(--rule);background:white;color:var(--muted);
+}
+.ex-level.building{border-color:var(--accent);color:var(--accent);background:var(--accent-lt);}
+.ex-level.strong{border-color:var(--gold);color:var(--gold);background:var(--gold-lt);}
+.ex-level.ceiling{border-color:var(--green);color:var(--green);background:var(--green-lt);}
+.ex-desc{font-size:12px;color:var(--muted);font-style:italic;}
+.ex-bd{padding:12px 14px;font-size:13px;line-height:1.7;color:var(--ink);background:white;}
+.ex-annot{
+  margin-top:10px;border-top:1px solid var(--rule);padding-top:10px;
+}
+.annot-row{
+  display:flex;align-items:flex-start;gap:8px;
+  padding:4px 0;font-size:12px;color:var(--muted);
+}
+.annot-lbl{
+  font-size:10px;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;padding:2px 7px;border-radius:999px;
+  background:var(--cream);border:1px solid var(--rule);
+  color:var(--muted);white-space:nowrap;margin-top:2px;
+}
+.annot-lbl.claim{border-color:var(--accent);color:var(--accent);background:var(--accent-lt);}
+.annot-lbl.proof{border-color:var(--muted);color:var(--muted);}
+.annot-lbl.payoff{border-color:var(--gold);color:var(--gold);background:var(--gold-lt);}
+.annot-lbl.return{border-color:var(--green);color:var(--green);background:var(--green-lt);}
+.annot-lbl.miss{border-color:var(--red);color:var(--red);background:var(--red-lt);}
+
+/* ── UPGRADE BANK ── */
+.upgrade-list{display:flex;flex-direction:column;gap:8px;}
+.upgrade-item{
+  border:1px solid var(--rule);border-radius:var(--r2);
+  padding:12px 14px;background:var(--paper);
+}
+.upgrade-item .up-move{
+  font-size:11px;font-weight:700;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--gold);margin-bottom:4px;
+}
+.upgrade-item p{font-size:13px;color:var(--ink);line-height:1.5;}
+
+/* ── ESSAY LOGIC ── */
+.logic-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0;}
+@media(max-width:640px){.logic-row{grid-template-columns:1fr;}}
+.logic-box{
+  border:1px solid var(--rule);border-radius:var(--r2);
+  padding:12px 14px;background:var(--paper);text-align:center;
+}
+.logic-box .lb-icon{
+  font-size:22px;margin-bottom:6px;
+}
+.logic-box .lb-name{
+  font-family:var(--serif);font-size:15px;font-style:italic;
+  color:var(--ink);margin-bottom:4px;
+}
+.logic-box .lb-desc{font-size:12px;color:var(--muted);line-height:1.5;}
+.logic-ex{
+  border:1px solid var(--rule);border-radius:var(--r2);
+  overflow:hidden;margin-top:12px;
+}
+.logic-ex-hd{
+  padding:8px 12px;background:var(--paper);border-bottom:1px solid var(--rule);
+  font-size:12px;font-weight:600;color:var(--muted);
+  letter-spacing:.06em;text-transform:uppercase;
+}
+.logic-steps{display:flex;flex-direction:column;}
+.logic-step{
+  display:grid;grid-template-columns:90px 1fr;
+  border-bottom:1px solid var(--rule);
+}
+.logic-step:last-child{border-bottom:0;}
+.ls-lbl{
+  padding:10px 12px;background:var(--cream);
+  border-right:1px solid var(--rule);
+  font-size:11px;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--muted);
+  display:flex;align-items:center;
+}
+.ls-lbl.extend{color:var(--accent);}
+.ls-lbl.complicate{color:var(--red);}
+.ls-lbl.widen{color:var(--green);}
+.ls-text{padding:10px 12px;font-size:13px;color:var(--ink);line-height:1.5;}
+
+/* ── STUDENT FAQ ── */
+.faq-list{display:flex;flex-direction:column;gap:0;}
+
+/* ── PROMPT BANK ── */
+.prompt-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px;}
+@media(max-width:640px){.prompt-grid{grid-template-columns:1fr;}}
+.prompt-card{
+  border:1px solid var(--rule);border-radius:var(--r2);
+  padding:10px 12px;background:var(--paper);
+  cursor:pointer;transition:all .12s;font-size:13px;
+  color:var(--muted);line-height:1.5;
+}
+.prompt-card:hover{border-color:var(--gold);background:var(--gold-lt);color:var(--ink);}
+.prompt-card .pr-theme{
+  font-size:10px;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--gold);margin-bottom:4px;
+}
+
+/* ── ANIMATE ── */
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(10px);}
+  to{opacity:1;transform:translateY(0);}
+}
+.card{animation:fadeUp .25s ease both;}
+.card:nth-child(1){animation-delay:.02s;}
+.card:nth-child(2){animation-delay:.05s;}
+.card:nth-child(3){animation-delay:.08s;}
+.card:nth-child(4){animation-delay:.11s;}
+.card:nth-child(5){animation-delay:.14s;}
+.card:nth-child(6){animation-delay:.17s;}
+.card:nth-child(7){animation-delay:.20s;}
+.card:nth-child(8){animation-delay:.23s;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:600px){
+  .hdr-tools{display:none;}
+  .brand-title{font-size:17px;}
+}
+.tiny{font-size:12px;}
+.mt{margin-top:10px;}
+.mb{margin-bottom:10px;}
+ul{padding-left:18px;}
+li{margin-bottom:5px;font-size:14px;line-height:1.6;}
+strong{font-weight:600;}
+em{font-style:italic;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hdr-inner">
+    <div class="hdr-top">
+      <div>
+        <div class="brand-title">Chronicle of a Death Foretold — Text Response</div>
+        <div class="brand-sub">Voice-first essay writing · Functions without templates · Staff + student resource</div>
+      </div>
+      <div class="hdr-tools">
+        <div class="search-wrap" role="search">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M10.5 18.5a8 8 0 1 1 0-16 8 8 0 0 1 0 16Z" stroke="currentColor" stroke-width="1.7"/>
+            <path d="M16.2 16.2 21 21" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+          </svg>
+          <input id="q" type="text" placeholder="Search: payoff, Phase 3, honour, upgrade…" aria-label="Search resource"/>
+          <span class="kbd">/</span>
+        </div>
+        <button class="btn" id="expandAll">Expand all</button>
+        <button class="btn" id="collapseAll">Collapse all</button>
+        <button class="btn gold" id="copyLink">Copy link</button>
+      </div>
+    </div>
+    <nav class="nav-tabs" aria-label="Jump to section">
+      <a class="nav-chip" href="#start"><span class="dot"></span>Start here</a>
+      <a class="nav-chip" href="#phases"><span class="dot"></span>Scaffold phases</a>
+      <a class="nav-chip" href="#payoff"><span class="dot"></span>Payoff lines</a>
+      <a class="nav-chip" href="#voice"><span class="dot"></span>Voice</a>
+      <a class="nav-chip" href="#builder"><span class="dot"></span>Paragraph builder</a>
+      <a class="nav-chip" href="#exemplars"><span class="dot"></span>Exemplars</a>
+      <a class="nav-chip" href="#upgrades"><span class="dot"></span>Upgrades</a>
+      <a class="nav-chip" href="#essay"><span class="dot"></span>Essay logic</a>
+      <a class="nav-chip" href="#faq"><span class="dot"></span>FAQs</a>
+    </nav>
+  </div>
+</header>
+
+<main class="main-wrap" id="start">
+  <div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <h2>How to use this</h2>
+      <p>A menu, not a script. Steal one idea per lesson and adapt it. The goal is a shared language around what writing <em>does</em> — not how it looks.</p>
+      <div class="pill-row">
+        <span class="pill"><strong>Browse</strong> like a reference</span>
+        <span class="pill"><strong>Try</strong> one move next lesson</span>
+        <span class="pill"><strong>Share</strong> a common language</span>
+      </div>
+      <div class="callout">
+        <p><strong>Core principle:</strong> standardise what writing needs to <em>do</em>, not how it needs to <em>look</em>.</p>
+      </div>
+      <div class="callout warn">
+        <p><strong>Watch out:</strong> if a strategy can be taught as "Sentence 1 / 2 / 3…" it's a template in disguise.</p>
+      </div>
+      <div class="divider"></div>
+      <h2>Contents</h2>
+      <div class="toc-list">
+        <a class="toc-item" href="#phases">Scaffold phases <small>what students see</small></a>
+        <a class="toc-item" href="#payoff">Payoff lines <small>stems + exemplars</small></a>
+        <a class="toc-item" href="#voice">Voice markers <small>before/after</small></a>
+        <a class="toc-item" href="#builder">Paragraph builder <small>any prompt</small></a>
+        <a class="toc-item" href="#exemplars">Exemplars <small>building → ceiling</small></a>
+        <a class="toc-item" href="#upgrades">One-line upgrades <small>MVP marking</small></a>
+        <a class="toc-item" href="#essay">Essay logic <small>extend, complicate, widen</small></a>
+        <a class="toc-item" href="#faq">FAQs <small>staff + student</small></a>
+      </div>
+      <div class="divider"></div>
+      <p class="tiny" style="color:var(--faint)">Press <span class="kbd">/</span> to jump to search.</p>
+    </aside>
+
+    <!-- MAIN STACK -->
+    <section class="stack">
+
+      <!-- CARD 1: WHAT ARE WE CHANGING -->
+      <article class="card" id="core">
+        <div class="card-hd">
+          <h3>What are we actually trying to change?</h3>
+          <span class="tag">shared language, not a script</span>
+        </div>
+        <div class="card-bd">
+          <details open>
+            <summary>
+              <div class="sum-l">
+                <span class="sum-t">The problem with TEEL</span>
+                <span class="sum-s">and why swapping it for a new template won't work</span>
+              </div>
+              <svg class="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="acc-bd">
+              <p style="font-size:14px;margin-bottom:10px;">TEEL works as a scaffold for beginners. The problem is that it teaches <em>order</em> rather than <em>function</em> — so students produce four-sentence templates even when their ideas need space to breathe.</p>
+              <div class="compare">
+                <div class="box bad">
+                  <h4>What TEEL teaches</h4>
+                  <p>Sentence 1 = topic. Sentence 2 = evidence. Sentence 3 = explain. Sentence 4 = link. Every paragraph looks the same.</p>
+                </div>
+                <div class="box good">
+                  <h4>What this replaces it with</h4>
+                  <p>A paragraph needs a <strong>claim</strong>, <strong>proof</strong>, <strong>meaning</strong>, and a <strong>return</strong> — in whatever order serves the idea.</p>
+                </div>
+              </div>
+            </div>
+          </details>
+
+          <details open>
+            <summary>
+              <div class="sum-l">
+                <span class="sum-t">What replaces it?</span>
+                <span class="sum-s">functions + the improvement routine</span>
+              </div>
+              <svg class="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="acc-bd">
+              <p style="font-size:14px;margin-bottom:10px;">Two ideas staff can agree on without buying into a new paragraph recipe:</p>
+              <ul>
+                <li><strong>Paragraph functions:</strong> a paragraph should do identifiable work — claim → proof → meaning → return.</li>
+                <li><strong>Improvement routine:</strong> students get better through <em>attempts + upgrades</em> (MVP cycle), not waiting for a perfect draft.</li>
+              </ul>
+              <div class="callout mt">
+                <p><strong>Common ground line:</strong> "We'll teach what to include and how to improve — not the order of sentences."</p>
+              </div>
+            </div>
+          </details>
+
+          <details>
+            <summary>
+              <div class="sum-l">
+                <span class="sum-t">How do we avoid 'structure creep'?</span>
+                <span class="sum-s">the template test</span>
+              </div>
+              <svg class="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="acc-bd">
+              <ul>
+                <li>If it can be taught as "Sentence 1/2/3…", it will become a new TEEL.</li>
+                <li>If success criteria are vague ("uses evidence"), students will default to summary.</li>
+                <li>If feedback is long, students won't resubmit — the cycle breaks.</li>
+              </ul>
+              <div class="callout warn mt">
+                <p><strong>Practical guardrail:</strong> one upgrade line per student per draft. If you can't say it in one sentence, it's too many moving parts.</p>
+              </div>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <!-- CARD 2: PHASES -->
+      <article class="card" id="phases">
+        <div class="card-hd">
+          <h3>Scaffold phases</h3>
+          <span class="tag">fade-out, not removal</span>
+        </div>
+        <div class="card-bd">
+          <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Each phase uses the same timed paragraph task — the rails are removed progressively. Phase 3 includes conferencing questions for teacher use.</p>
+          <div class="tab-row" role="tablist">
+            <button class="tab" role="tab" aria-selected="true" aria-controls="ph1" id="pt1">Phase 1 · Weeks 1–2</button>
+            <button class="tab" role="tab" aria-selected="false" aria-controls="ph2" id="pt2">Phase 2 · Weeks 3–4</button>
+            <button class="tab" role="tab" aria-selected="false" aria-controls="ph3" id="pt3">Phase 3 · Week 5+</button>
+          </div>
+
+          <div id="ph1" role="tabpanel">
+            <div class="callout info mb">
+              <p><strong>Goal:</strong> Momentum and correct function. Not perfection. Rails are fully visible.</p>
+            </div>
+            <div class="phase-card">
+              <div class="phase-hd">
+                <span class="phase-num">Phase 1</span>
+                <span class="phase-wk">Timed paragraph · 20 minutes</span>
+              </div>
+              <div class="phase-bd">
+                <div class="phase-task">Write one paragraph that includes:
+• A clear claim about the prompt
+• Two lines of proof (two different ways of proving the same idea)
+• A payoff line ("This matters because…")
+• A return to the prompt
+• Optional: a limitation (Yet / However) to add complexity
+
+No-stall rule: no quote? Use a remembered moment, pattern, or paraphrase.
+Submit by the end of the lesson.</div>
+              </div>
+            </div>
+          </div>
+
+          <div id="ph2" class="hide" role="tabpanel">
+            <div class="callout mb" style="border-left-color:var(--gold);background:var(--gold-lt);">
+              <p><strong>Goal:</strong> Same functions expected — but recalled from memory. Rails reduced.</p>
+            </div>
+            <div class="phase-card">
+              <div class="phase-hd">
+                <span class="phase-num">Phase 2</span>
+                <span class="phase-wk">Timed paragraph · 20 minutes</span>
+              </div>
+              <div class="phase-bd">
+                <div class="phase-task">Claim. Two lines of proof. Payoff (meaning, not summary). Return to prompt.
+
+Write without the checklist.
+No-stall rule still applies.</div>
+              </div>
+            </div>
+          </div>
+
+          <div id="ph3" class="hide" role="tabpanel">
+            <div class="callout good mb">
+              <p><strong>Goal:</strong> Rails removed. Teacher support shifts to conferencing questions.</p>
+            </div>
+            <div class="phase-card">
+              <div class="phase-hd">
+                <span class="phase-num">Phase 3</span>
+                <span class="phase-wk">Timed paragraph · 20 minutes</span>
+              </div>
+              <div class="phase-bd">
+                <div class="phase-task">Answer the prompt. Use evidence purposefully. Make meaning.
+(No checklist. No harness.)</div>
+                <div class="phase-conf">
+                  <h4>Conferencing questions (teacher use)</h4>
+                  <div class="conf-q">What does your payoff line say about human nature or society — not just about this novel?</div>
+                  <div class="conf-q">What's the cost of the thing you've described? Who pays it?</div>
+                  <div class="conf-q">Does your second paragraph push the first forward, or does it restart?</div>
+                  <div class="conf-q">If your evidence disappeared, would the claim still mean the same thing?</div>
+                  <div class="conf-q">Where's the tension in your argument — what doesn't quite fit?</div>
+                  <div class="conf-q">What word in your claim are you most committed to? Can you defend it?</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- CARD 3: PAYOFF LINES -->
+      <article class="card" id="payoff">
+        <div class="card-hd">
+          <h3>Payoff lines</h3>
+          <span class="tag">evidence → meaning</span>
+        </div>
+        <div class="card-bd">
+          <details open>
+            <summary>
+              <div class="sum-l">
+                <span class="sum-t">What payoff is</span>
+                <span class="sum-s">in one teachable line</span>
+              </div>
+              <svg class="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="acc-bd">
+              <div class="callout">
+                <p><strong>Payoff</strong> is the sentence where the writer states what the evidence suggests about values, responsibility, consequence, or mechanism — not what happened.</p>
+              </div>
+              <div class="compare mt">
+                <div class="box bad">
+                  <h4>Summary (what happened)</h4>
+                  <p>"This shows gender roles are restrictive."</p>
+                </div>
+                <div class="box good">
+                  <h4>Payoff (what it suggests)</h4>
+                  <p class="gold-text">"This matters because Márquez frames gender as training — locking masculinity to honour and femininity to marriageability."</p>
+                </div>
+              </div>
+            </div>
+          </details>
+
+          <details>
+            <summary>
+              <div class="sum-l">
+                <span class="sum-t">Payoff stems</span>
+                <span class="sum-s">low threshold → high ceiling</span>
+              </div>
+              <svg class="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="acc-bd">
+              <ul>
+                <li><strong>Low threshold:</strong> This matters because… / What this suggests is… / So Márquez implies…</li>
+                <li><strong>Mechanism:</strong> This works because… / This reveals how… / In effect, this turns ___ into ___.</li>
+                <li><strong>Values:</strong> This exposes a society that values ___ over ___. / The cost of this is…</li>
+                <li><strong>Implication:</strong> The consequence is that… / It becomes less about ___ and more about ___.</li>
+                <li><strong>Complexity:</strong> However, this also suggests… / Yet this only holds because…</li>
+              </ul>
+            </div>
+          </details>
+
+          <details>
+            <summary>
+              <div class="sum-l">
+                <span class="sum-t">COADF payoff exemplars</span>
+                <span class="sum-s">copy/paste bank across themes</span>
+              </div>
+              <svg class="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="acc-bd">
+              <div class="screen">
+<strong>Memory + guilt</strong>
+• This matters because memory becomes a moral defence mechanism — reshaping the past to make responsibility bearable.
+• What this suggests is that recollection is less a record of truth than a negotiation of blame.
+• In effect, guilt keeps the town remembering, but also corrupts what is remembered.
+
+<strong>Honour + gender</strong>
+• This exposes a society that values reputation over the lives of the individuals who uphold it.
+• The consequence is that honour operates as a system of social control, not a personal code.
+• In effect, femininity is turned into a condition — something that can be lost, tested, and restored.
+
+<strong>Fate + complicity</strong>
+• This matters because the town's passivity is not apathy — it is the mechanism by which fate is manufactured.
+• What this suggests is that collective inaction carries a moral weight indistinguishable from deliberate choice.
+• Yet the persistence of these retellings implies guilt cannot be fully silenced — only managed.</div>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <!-- CARD 4: VOICE -->
+      <article class="card" id="voice">
+        <div class="card-hd">
+          <h3>Voice markers</h3>
+          <span class="tag">before / after comparisons</span>
+        </div>
+        <div class="card-bd">
+          <div class="callout mb">
+            <p><strong>Voice = control.</strong> Clear stance, precise nouns, and thinking verbs that name what the author is doing — not just describing what happens.</p>
+          </div>
+
+          <details open>
+            <summary>
+              <div class="sum-l">
+                <span class="sum-t">Thinking verbs</span>
+                <span class="sum-s">swap "shows/explores" for something specific</span>
+              </div>
+              <svg class="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="acc-bd">
+              <div class="upgrade-badge">Move: verb swap</div>
+              <div class="ba-pair">
+                <div class="box bad">
+                  <h4>Before</h4>
+                  <p>"Márquez <strong>shows</strong> that the community has a problem with gender roles."</p>
+                </div>
+                <div class="ba-arrow">→</div>
+                <div class="box good">
+                  <h4>After</h4>
+                  <p>"Márquez <strong>normalises</strong> gender as a system of honour — making female purity a condition the whole community enforces."</p>
+                </div>
+              </div>
+              <div class="screen mt">
+<strong>Verb bank</strong>  exposes · frames · normalises · undercuts · positions · implicates · constructs · weaponises · conflates · burdens · suspends · manipulates · reduces · transforms</div>
+            </div>
+          </details>
+
+          <details>
+            <summary>
+              <div class="sum-l">
+                <span class="sum-t">Precision nouns</span>
+                <span class="sum-s">name the mechanism, not the theme</span>
+              </div>
+              <svg class="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="acc-bd">
+              <div class="upgrade-badge">Move: precision noun</div>
+              <div class="ba-pair">
+                <div class="box bad">
+                  <h4>Before</h4>
+                  <p>"The town's <strong>society</strong> causes Santiago's death."</p>
+                </div>
+                <div class="ba-arrow">→</div>
+                <div class="box good">
+                  <h4>After</h4>
+                  <p>"The town's <strong>honour code</strong> and <strong>public judgement</strong> <strong>normalise</strong> moral avoidance, turning inaction into a socially sanctioned choice."</p>
+                </div>
+              </div>
+              <div class="screen mt">
+<strong>Noun bank</strong>  honour code · moral obligation · collective inaction · patriarchal logic · ritual violence · social contract · communal guilt · public memory · private shame · masculine identity · reputational economy</div>
+            </div>
+          </details>
+
+          <details>
+            <summary>
+              <div class="sum-l">
+                <span class="sum-t">Stance control</span>
+                <span class="sum-s">calibrated certainty — not hedging, not overclaiming</span>
+              </div>
+              <svg class="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="acc-bd">
+              <div class="upgrade-badge">Move: stance word</div>
+              <div class="ba-pair">
+                <div class="box bad">
+                  <h4>Before (overclaiming)</h4>
+                  <p>"Márquez proves guilt <strong>completely</strong> controls memory."</p>
+                </div>
+                <div class="ba-arrow">→</div>
+                <div class="box good">
+                  <h4>After (calibrated)</h4>
+                  <p>"Márquez suggests guilt <strong>significantly</strong> reshapes memory, <strong>especially when</strong> confronting responsibility would threaten social comfort."</p>
+                </div>
+              </div>
+              <div class="screen mt">
+<strong>Stance words</strong>  largely · significantly · primarily · particularly when · especially when · only when · partly · increasingly · inevitably (use sparingly)</div>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <!-- CARD 5: PARAGRAPH BUILDER -->
+      <article class="card" id="builder">
+        <div class="card-hd">
+          <h3>Paragraph builder</h3>
+          <span class="tag">build functions, not format</span>
+        </div>
+        <div class="card-bd">
+          <div class="builder-note">
+            <strong>⚠ Important:</strong> This builder generates one possible paragraph shape. The same functions can be arranged differently — your opening sentence doesn't have to be your claim. Use this to understand what each function contributes, not to copy the format.
+          </div>
+
+          <!-- Prompt bank -->
+          <details>
+            <summary>
+              <div class="sum-l">
+                <span class="sum-t">Pick a prompt to start</span>
+                <span class="sum-s">or type your own above</span>
+              </div>
+              <svg class="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="acc-bd">
+              <div class="prompt-grid">
+                <div class="prompt-card" data-prompt="'Chronicle of a Death Foretold' highlights the role guilt plays in shaping memory. Discuss.">
+                  <div class="pr-theme">Memory + guilt</div>
+                  Guilt plays in shaping memory. Discuss.
+                </div>
+                <div class="prompt-card" data-prompt="How does Márquez use honour to explore the relationship between the individual and the community in 'Chronicle of a Death Foretold'?">
+                  <div class="pr-theme">Honour + community</div>
+                  Honour and the individual vs. community. Discuss.
+                </div>
+                <div class="prompt-card" data-prompt="'In Chronicle of a Death Foretold, fate is not inevitable — it is manufactured.' How far do you agree?">
+                  <div class="pr-theme">Fate + complicity</div>
+                  Fate is manufactured, not inevitable. How far?
+                </div>
+                <div class="prompt-card" data-prompt="How does Márquez present gender as a form of social control in 'Chronicle of a Death Foretold'?">
+                  <div class="pr-theme">Gender + control</div>
+                  Gender as a form of social control. Discuss.
+                </div>
+              </div>
+            </div>
+          </details>
+
+          <div class="builder-grid" style="margin-top:12px;">
+            <div>
+              <div class="field">
+                <label for="prompt">Prompt</label>
+                <input id="prompt" type="text" value="'Chronicle of a Death Foretold' highlights the role guilt plays in shaping memory. Discuss."/>
+              </div>
+              <div class="row">
+                <div class="field">
+                  <label for="stance">Stance</label>
+                  <select id="stance">
+                    <option value="largely">largely</option>
+                    <option value="significantly">significantly</option>
+                    <option value="partly">partly</option>
+                    <option value="especially when">especially when</option>
+                    <option value="only when">only when</option>
+                    <option value="primarily">primarily</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="verb">Thinking verb</label>
+                  <select id="verb">
+                    <option value="suggests">suggests</option>
+                    <option value="exposes">exposes</option>
+                    <option value="frames">frames</option>
+                    <option value="normalises">normalises</option>
+                    <option value="undercuts">undercuts</option>
+                    <option value="implicates">implicates</option>
+                    <option value="constructs">constructs</option>
+                    <option value="positions">positions</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field">
+                <label for="claim">Claim</label>
+                <textarea id="claim">Guilt reshapes memory by turning recollection into a way of managing responsibility rather than preserving truth.</textarea>
+              </div>
+              <div class="field">
+                <label for="proof1">Line of proof 1</label>
+                <textarea id="proof1">The town repeatedly reconstructs who knew Santiago would be killed, and those recollections soften accountability through uncertainty and excuse.</textarea>
+              </div>
+              <div class="field">
+                <label for="proof2">Line of proof 2</label>
+                <textarea id="proof2">Father Amador's "it wasn't any business of mine" shows how moral avoidance is normalised, shaping the story people later tell about their inaction.</textarea>
+              </div>
+              <div class="row">
+                <div class="field">
+                  <label for="paystem">Payoff stem</label>
+                  <select id="paystem">
+                    <option value="This matters because">This matters because…</option>
+                    <option value="What this suggests is">What this suggests is…</option>
+                    <option value="In effect, this turns">In effect, this turns ___ into ___.</option>
+                    <option value="This exposes a society that values">This exposes a society that values ___ over ___.</option>
+                    <option value="The consequence is that">The consequence is that…</option>
+                    <option value="Yet this also suggests">Yet this also suggests…</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="payoff">Payoff</label>
+                  <textarea id="payoffText">memory becomes a moral defence mechanism, allowing the town to revisit the past without fully owning responsibility.</textarea>
+                </div>
+              </div>
+              <div class="row">
+                <button class="btn gold" id="gen" type="button">Generate paragraph</button>
+                <button class="btn" id="genAlt" type="button">Different shape</button>
+                <button class="btn" id="copy" type="button">Copy</button>
+                <button class="btn" id="clear" type="button">Reset</button>
+              </div>
+            </div>
+            <div>
+              <div class="output-label">Generated paragraph</div>
+              <div class="output" id="out">
+                <div class="out-meta">
+                  <span class="badge"><strong>Functions</strong> claim · proof · payoff · return</span>
+                </div>
+                Generate a paragraph to see it here.
+              </div>
+              <div class="alt-out" id="altOut" style="display:none;">
+                <div class="output-label">Alternative shape (evidence-first)</div>
+                <div class="output" id="out2"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- CARD 6: EXEMPLARS -->
+      <article class="card" id="exemplars">
+        <div class="card-hd">
+          <h3>Exemplars + before/after</h3>
+          <span class="tag">building → strong → ceiling</span>
+        </div>
+        <div class="card-bd">
+
+          <details open>
+            <summary>
+              <div class="sum-l">
+                <span class="sum-t">A realistic starting point — and how to upgrade it</span>
+                <span class="sum-s">one move, not a rewrite</span>
+              </div>
+              <svg class="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="acc-bd">
+              <p style="font-size:13px;color:var(--muted);margin-bottom:10px;">This is the kind of paragraph many students write after leaving TEEL. The functions are almost there — it just needs one move to reach meaning.</p>
+              <div class="ba-pair">
+                <div class="box bad">
+                  <h4>Before (C–B range)</h4>
+                  <p>In <em>Chronicle of a Death Foretold</em>, guilt shapes memory. The townspeople remember the events of Santiago's death differently. For example, some say they didn't know, others say they did but didn't act. This shows that guilt affects how people remember things. Overall, Márquez uses this to highlight themes of guilt and memory in the novel.</p>
+                  <div style="margin-top:8px;">
+                    <div class="annot-row"><span class="annot-lbl claim">claim</span><span style="font-size:12px;color:var(--muted);">present but vague — "guilt shapes memory" needs a mechanism</span></div>
+                    <div class="annot-row"><span class="annot-lbl proof">proof</span><span style="font-size:12px;color:var(--muted);">evidence is there but paraphrased loosely</span></div>
+                    <div class="annot-row"><span class="annot-lbl miss">missing</span><span style="font-size:12px;color:var(--muted);">payoff says "this shows" — still summary, not meaning</span></div>
+                  </div>
+                </div>
+                <div class="ba-arrow">→</div>
+                <div class="box good">
+                  <h4>After (one upgrade: add a payoff line)</h4>
+                  <p>In <em>Chronicle of a Death Foretold</em>, guilt reshapes memory by turning recollection into a way of managing responsibility rather than preserving truth. The townspeople reconstruct who knew Santiago would be killed, and those memories soften accountability through uncertainty and excuse. <span class="gold-text">This matters because memory becomes a moral defence mechanism — the past is retold to make failure bearable rather than confront it.</span> Márquez therefore presents the community's remembering as inseparable from its guilt.</p>
+                  <div style="margin-top:8px;">
+                    <div class="annot-row"><span class="annot-lbl payoff">upgrade</span><span style="font-size:12px;color:var(--muted);">one payoff line added — "This matters because…" now names the mechanism</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </details>
+
+          <details open>
+            <summary>
+              <div class="sum-l">
+                <span class="sum-t">Three strong paragraphs</span>
+                <span class="sum-s">same functions, different shapes — use as staff anchors</span>
+              </div>
+              <svg class="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="acc-bd">
+              <div class="exemplar-grid">
+                <div class="ex">
+                  <div class="ex-hd">
+                    <span class="ex-level strong">Strong</span>
+                    <span class="ex-desc">Compact — claim-led, efficient payoff</span>
+                  </div>
+                  <div class="ex-bd">
+                    <p>Guilt shapes memory in <em>Chronicle of a Death Foretold</em> by turning recollection into a way of managing responsibility rather than preserving truth. The town repeatedly reconstructs who knew Santiago would be killed, and those memories soften accountability through uncertainty and excuse. This matters because the novel presents memory as morally contaminated: the past is retold to make failure bearable. However, the persistence of these retellings implies guilt cannot be fully buried — only managed.</p>
+                    <div class="ex-annot">
+                      <div class="annot-row"><span class="annot-lbl claim">claim</span><span style="font-size:12px;color:var(--muted);">opens with mechanism, not topic</span></div>
+                      <div class="annot-row"><span class="annot-lbl proof">proof</span><span style="font-size:12px;color:var(--muted);">two lines of proof compressed efficiently</span></div>
+                      <div class="annot-row"><span class="annot-lbl payoff">payoff</span><span style="font-size:12px;color:var(--muted);">"morally contaminated" — precise noun doing work</span></div>
+                      <div class="annot-row"><span class="annot-lbl return">return</span><span style="font-size:12px;color:var(--muted);">complicates rather than restates</span></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="ex">
+                  <div class="ex-hd">
+                    <span class="ex-level strong">Strong</span>
+                    <span class="ex-desc">Evidence-first — different shape, same functions</span>
+                  </div>
+                  <div class="ex-bd">
+                    <p>The shifting recollections of warnings and missed chances reveal a town trying to remember a murder without owning it. Márquez suggests guilt shapes memory by dispersing blame across the community, so remembrance becomes a negotiation of responsibility rather than a record of truth. This matters because guilt keeps the past alive, but it also distorts what is remembered. Yet the distortion itself exposes a society haunted by what it failed to prevent.</p>
+                    <div class="ex-annot">
+                      <div class="annot-row"><span class="annot-lbl proof">evidence-first</span><span style="font-size:12px;color:var(--muted);">opens with pattern not claim — valid move</span></div>
+                      <div class="annot-row"><span class="annot-lbl claim">claim</span><span style="font-size:12px;color:var(--muted);">arrives in sentence 2 after the evidence is established</span></div>
+                      <div class="annot-row"><span class="annot-lbl payoff">payoff</span><span style="font-size:12px;color:var(--muted);">complication built into the payoff itself</span></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="ex">
+                  <div class="ex-hd">
+                    <span class="ex-level ceiling">High ceiling</span>
+                    <span class="ex-desc">Mechanism-led — integrates complexity throughout</span>
+                  </div>
+                  <div class="ex-bd">
+                    <p>In Márquez's novel, guilt does not simply follow memory; it actively organises it, shaping how the town reconstructs Santiago's death. Fragmented testimony suggests remembrance is inseparable from moral implication, because every version of events carries the pressure of who might have acted. Memory becomes a form of self-protection — participation in the story without full ownership of the failure within it. Márquez therefore presents memory as both the product of guilt and the evidence of its endurance.</p>
+                    <div class="ex-annot">
+                      <div class="annot-row"><span class="annot-lbl claim">claim</span><span style="font-size:12px;color:var(--muted);">distinguishes between following and organising — high precision</span></div>
+                      <div class="annot-row"><span class="annot-lbl payoff">payoff</span><span style="font-size:12px;color:var(--muted);">"self-protection" — stakes are named, not summarised</span></div>
+                      <div class="annot-row"><span class="annot-lbl return">return</span><span style="font-size:12px;color:var(--muted);">final sentence advances the idea, doesn't repeat it</span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <!-- CARD 7: UPGRADES -->
+      <article class="card" id="upgrades">
+        <div class="card-hd">
+          <h3>One-line upgrade bank</h3>
+          <span class="tag">MVP marking · fast and consistent</span>
+        </div>
+        <div class="card-bd">
+          <div class="callout mb">
+            <p><strong>Rule:</strong> give students one upgrade per draft. If you can't say it in one sentence, it's too many moving parts.</p>
+          </div>
+
+          <details open>
+            <summary>
+              <div class="sum-l">
+                <span class="sum-t">Payoff upgrades</span>
+                <span class="sum-s">highest leverage — most students need these first</span>
+              </div>
+              <svg class="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="acc-bd">
+              <div class="upgrade-list">
+                <div class="upgrade-item">
+                  <div class="up-move">Move 1</div>
+                  <p>Add one payoff line beginning "This matters because…" that states what your evidence suggests about responsibility, values, or consequence.</p>
+                </div>
+                <div class="upgrade-item">
+                  <div class="up-move">Move 2</div>
+                  <p>Replace one summary sentence with a mechanism sentence: "This reveals how…" + state the process, not the conclusion.</p>
+                </div>
+                <div class="upgrade-item">
+                  <div class="up-move">Move 3</div>
+                  <p>Swap "shows/explores" for a thinking verb that names what Márquez is doing: <em>exposes, frames, normalises, undercuts, implicates</em>.</p>
+                </div>
+              </div>
+            </div>
+          </details>
+
+          <details>
+            <summary>
+              <div class="sum-l">
+                <span class="sum-t">Claim upgrades</span>
+                <span class="sum-s">for students who can write payoff but open vaguely</span>
+              </div>
+              <svg class="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="acc-bd">
+              <div class="upgrade-list">
+                <div class="upgrade-item">
+                  <div class="up-move">Move 4</div>
+                  <p>Add a mechanism word to your claim: not "guilt shapes memory" but "guilt <em>distorts</em> memory <em>by turning</em> recollection into a form of self-protection."</p>
+                </div>
+                <div class="upgrade-item">
+                  <div class="up-move">Move 5</div>
+                  <p>Replace one vague noun (society, theme, idea) with a precision noun: <em>honour code, patriarchal logic, communal guilt, reputational economy</em>.</p>
+                </div>
+              </div>
+            </div>
+          </details>
+
+          <details>
+            <summary>
+              <div class="sum-l">
+                <span class="sum-t">Complexity upgrades</span>
+                <span class="sum-s">for students already at B+ who need to push further</span>
+              </div>
+              <svg class="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="acc-bd">
+              <div class="upgrade-list">
+                <div class="upgrade-item">
+                  <div class="up-move">Move 6</div>
+                  <p>Add a "Yet…" or "However…" sentence that names a limit or cost of the pattern you've identified — what your argument doesn't fully account for.</p>
+                </div>
+                <div class="upgrade-item">
+                  <div class="up-move">Move 7</div>
+                  <p>End with a sentence that advances the idea, not one that restates it: not "Overall, Márquez explores guilt" but "Márquez therefore presents guilt as the mechanism by which a community can witness failure without ever confessing it."</p>
+                </div>
+              </div>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <!-- CARD 8: ESSAY LOGIC -->
+      <article class="card" id="essay">
+        <div class="card-hd">
+          <h3>Sustained thinking across paragraphs</h3>
+          <span class="tag">advance, don't restart</span>
+        </div>
+        <div class="card-bd">
+          <div class="callout mb">
+            <p><strong>Simple rule:</strong> each paragraph must advance the same central idea by extending, complicating, or widening — not restarting the essay.</p>
+          </div>
+
+          <div class="logic-row">
+            <div class="logic-box">
+              <div class="lb-icon">→</div>
+              <div class="lb-name">Extend</div>
+              <div class="lb-desc">Add a mechanism, cause, or deeper explanation. Push the idea further.</div>
+            </div>
+            <div class="logic-box">
+              <div class="lb-icon">⟳</div>
+              <div class="lb-name">Complicate</div>
+              <div class="lb-desc">Add tension, a limit, or a cost. What doesn't fully fit?</div>
+            </div>
+            <div class="logic-box">
+              <div class="lb-icon">↑</div>
+              <div class="lb-name">Widen</div>
+              <div class="lb-desc">Shift the lens. Individual → community. Personal → structural.</div>
+            </div>
+          </div>
+
+          <details open>
+            <summary>
+              <div class="sum-l">
+                <span class="sum-t">Worked example: guilt + memory (3 paragraphs)</span>
+                <span class="sum-s">see how the same idea builds across an essay</span>
+              </div>
+              <svg class="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="acc-bd">
+              <div class="logic-ex">
+                <div class="logic-ex-hd">Payoff line from each paragraph → what the next paragraph must do</div>
+                <div class="logic-steps">
+                  <div class="logic-step">
+                    <div class="ls-lbl">Para 1<br>Claim</div>
+                    <div class="ls-text"><strong>Payoff:</strong> "Memory becomes a moral defence mechanism — the past is retold to make failure bearable."<br><span style="color:var(--muted);font-size:12px;">Establishes the mechanism. Next paragraph must do more than repeat this.</span></div>
+                  </div>
+                  <div class="logic-step">
+                    <div class="ls-lbl extend">Para 2<br>Extend</div>
+                    <div class="ls-text"><strong>Move:</strong> Add the mechanism behind the mechanism — <em>why</em> retelling works as protection.<br><strong>Payoff:</strong> "The fragmented narrative structure itself mirrors this process — Márquez constructs a text that performs the same distortions his characters practice, implicating the reader in the town's collective evasion."<br><span style="color:var(--muted);font-size:12px;">This extends by explaining <em>how</em> the novel's form participates in the same logic as the characters.</span></div>
+                  </div>
+                  <div class="logic-step">
+                    <div class="ls-lbl complicate">Para 3<br>Complicate</div>
+                    <div class="ls-text"><strong>Move:</strong> Name the cost — what guilt can't actually do, even through memory.<br><strong>Payoff:</strong> "Yet the novel's very existence as a re-investigation suggests that managed guilt is unstable — the community's stories require constant retelling precisely because they cannot contain the moral weight they are designed to suppress."<br><span style="color:var(--muted);font-size:12px;">This complicates by showing the <em>failure</em> of the defence mechanism identified in Para 1.</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </details>
+
+          <details>
+            <summary>
+              <div class="sum-l">
+                <span class="sum-t">Common mistake: the three-separate-ideas essay</span>
+                <span class="sum-s">why it plateaus at B</span>
+              </div>
+              <svg class="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="acc-bd">
+              <div class="compare">
+                <div class="box bad">
+                  <h4>Three-separate-ideas essay</h4>
+                  <p>Para 1: guilt<br>Para 2: honour<br>Para 3: fate</p>
+                  <p style="margin-top:8px;">Each paragraph is complete in itself. There is no accumulated argument. The essay is a list.</p>
+                </div>
+                <div class="box good">
+                  <h4>One-idea essay (extended)</h4>
+                  <p>Para 1: guilt distorts memory<br>Para 2: the novel's form performs that distortion<br>Para 3: but distortion is unstable — guilt persists</p>
+                  <p style="margin-top:8px;">Each paragraph adds to the same idea. By the end, the argument is more complex than it started.</p>
+                </div>
+              </div>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <!-- CARD 9: FAQs -->
+      <article class="card" id="faq">
+        <div class="card-hd">
+          <h3>FAQs</h3>
+          <span class="tag">staff + student</span>
+        </div>
+        <div class="card-bd">
+
+          <details open>
+            <summary>
+              <div class="sum-l">
+                <span class="sum-t">Student FAQ</span>
+                <span class="sum-s">for students moving away from TEEL</span>
+              </div>
+              <svg class="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="acc-bd">
+              <details>
+                <summary><div class="sum-l"><span class="sum-t">Do I have to follow a specific order?</span></div><svg class="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
+                <div class="acc-bd">
+                  <p style="font-size:14px;">No. You can open with evidence and build to your claim. You can complicate before you explain. The question is: does your paragraph contain a claim, proof, meaning, and a return? Not: are they in a specific order?</p>
+                </div>
+              </details>
+              <details>
+                <summary><div class="sum-l"><span class="sum-t">Can I open with evidence instead of a claim?</span></div><svg class="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
+                <div class="acc-bd">
+                  <p style="font-size:14px;">Yes — and it can be very effective. Opening with a pattern or moment from the text, then building to your interpretation, can feel more analytical than a flat topic sentence. Just make sure the claim arrives before the payoff, not after.</p>
+                </div>
+              </details>
+              <details>
+                <summary><div class="sum-l"><span class="sum-t">How long should my paragraph be?</span></div><svg class="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
+                <div class="acc-bd">
+                  <p style="font-size:14px;">Long enough to include all four functions with meaning — usually 4–7 sentences. A 3-sentence paragraph can work if the payoff is doing real work. A 10-sentence paragraph usually has repetition or summary that can be cut.</p>
+                </div>
+              </details>
+              <details>
+                <summary><div class="sum-l"><span class="sum-t">What if I don't remember an exact quote?</span></div><svg class="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
+                <div class="acc-bd">
+                  <p style="font-size:14px;">Use a paraphrase or a pattern instead. "The narrator's repeated references to what the town didn't do" is still evidence. The no-stall rule applies: write the proof you remember, not the proof you can't find. A paraphrased example with good analysis beats a memorised quote with no payoff.</p>
+                </div>
+              </details>
+              <details>
+                <summary><div class="sum-l"><span class="sum-t">What's the difference between proof and payoff?</span></div><svg class="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
+                <div class="acc-bd">
+                  <p style="font-size:14px;margin-bottom:8px;"><strong>Proof</strong> is what happens in the text. <strong>Payoff</strong> is what that suggests about human nature, society, values, or how the world works.</p>
+                  <div class="compare">
+                    <div class="box bad"><h4>Proof (what happens)</h4><p>"The Vicario brothers announce their plan publicly."</p></div>
+                    <div class="box good"><h4>Payoff (what it means)</h4><p class="gold-text">"This exposes honour as a performance directed at the community — the act only matters because it is witnessed."</p></div>
+                  </div>
+                </div>
+              </details>
+            </div>
+          </details>
+
+          <details>
+            <summary>
+              <div class="sum-l">
+                <span class="sum-t">Staff FAQ</span>
+                <span class="sum-s">for teachers navigating the transition</span>
+              </div>
+              <svg class="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="acc-bd">
+              <details>
+                <summary><div class="sum-l"><span class="sum-t">If we stop teaching TEEL, what replaces it?</span></div><svg class="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
+                <div class="acc-bd">
+                  <p style="font-size:14px;">Two things: <strong>paragraph functions</strong> (a paragraph should do identifiable work — claim, proof, meaning, return) and an <strong>improvement routine</strong> (attempts + one upgrade at a time). Neither requires buying into a new template. Common ground line: "We'll teach what to include and how to improve — not the order of sentences."</p>
+                </div>
+              </details>
+              <details>
+                <summary><div class="sum-l"><span class="sum-t">How do we avoid turning this into a new template?</span></div><svg class="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
+                <div class="acc-bd">
+                  <p style="font-size:14px;">Template test: if it can be taught as "Sentence 1/2/3…", it will become a new TEEL. Keep success criteria focused on function, not order. Use the exemplars to show students that the same functions can look different — evidence-first and claim-first paragraphs both work.</p>
+                </div>
+              </details>
+              <details>
+                <summary><div class="sum-l"><span class="sum-t">My students freeze without a checklist. What do I do?</span></div><svg class="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
+                <div class="acc-bd">
+                  <p style="font-size:14px;">Use Phase 1 longer than you think you need to. The checklist isn't the problem — premature removal is. The goal is for students to internalise the functions, not to remove the scaffold early. Phase 3 still gives teachers conferencing questions for one-to-one support.</p>
+                </div>
+              </details>
+              <details>
+                <summary><div class="sum-l"><span class="sum-t">How do I give feedback efficiently under this approach?</span></div><svg class="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
+                <div class="acc-bd">
+                  <p style="font-size:14px;">One upgrade per student per draft. Identify the <em>highest leverage</em> missing function — almost always the payoff line — and write one sentence of feedback focused on that. If feedback is long, students won't resubmit. The MVP cycle only works if the loop is fast.</p>
+                </div>
+              </details>
+            </div>
+          </details>
+
+        </div>
+      </article>
+
+    </section>
+  </div>
+</main>
+
+<script>
+// ── Keyboard shortcut ──
+window.addEventListener('keydown', e => {
+  if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+    e.preventDefault();
+    document.getElementById('q').focus();
+  }
+});
+
+// ── Phase tabs ──
+const phases = [{btn:'pt1',panel:'ph1'},{btn:'pt2',panel:'ph2'},{btn:'pt3',panel:'ph3'}];
+function setPhase(id) {
+  phases.forEach(p => {
+    document.getElementById(p.btn).setAttribute('aria-selected', p.btn === id ? 'true' : 'false');
+    document.getElementById(p.panel).classList.toggle('hide', p.btn !== id);
+  });
+}
+phases.forEach(p => document.getElementById(p.btn).addEventListener('click', () => setPhase(p.btn)));
+
+// ── Prompt cards ──
+document.querySelectorAll('.prompt-card').forEach(card => {
+  card.addEventListener('click', () => {
+    document.getElementById('prompt').value = card.dataset.prompt;
+    card.closest('details').removeAttribute('open');
+  });
+});
+
+// ── Expand / collapse all ──
+document.getElementById('expandAll').addEventListener('click', () => {
+  document.querySelectorAll('details').forEach(d => d.open = true);
+});
+document.getElementById('collapseAll').addEventListener('click', () => {
+  document.querySelectorAll('details').forEach(d => d.open = false);
+});
+
+// ── Copy link ──
+document.getElementById('copyLink').addEventListener('click', async () => {
+  const url = location.href;
+  try { await navigator.clipboard.writeText(url); alert('Link copied.'); }
+  catch { prompt('Copy this link:', url); }
+});
+
+// ── Search ──
+const q = document.getElementById('q');
+function clearMarks() {
+  document.querySelectorAll('mark').forEach(m => {
+    m.parentNode.replaceChild(document.createTextNode(m.textContent), m);
+    m.parentNode.normalize();
+  });
+}
+function markText(node, term) {
+  if (!term) return;
+  const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT, null);
+  const hits = [];
+  while (walker.nextNode()) {
+    const t = walker.currentNode;
+    if (t.nodeValue && t.nodeValue.toLowerCase().includes(term.toLowerCase())) hits.push(t);
+  }
+  hits.forEach(t => {
+    const idx = t.nodeValue.toLowerCase().indexOf(term.toLowerCase());
+    if (idx === -1) return;
+    const frag = document.createDocumentFragment();
+    if (idx > 0) frag.appendChild(document.createTextNode(t.nodeValue.slice(0, idx)));
+    const m = document.createElement('mark');
+    m.textContent = t.nodeValue.slice(idx, idx + term.length);
+    m.style.cssText = 'background:rgba(196,146,42,.25);color:inherit;padding:0 2px;border-radius:4px;';
+    frag.appendChild(m);
+    frag.appendChild(document.createTextNode(t.nodeValue.slice(idx + term.length)));
+    t.parentNode.replaceChild(frag, t);
+  });
+}
+q.addEventListener('input', () => {
+  const term = q.value.trim();
+  clearMarks();
+  if (!term) return;
+  document.querySelectorAll('details').forEach(d => {
+    if (d.textContent.toLowerCase().includes(term.toLowerCase())) d.open = true;
+  });
+  markText(document.querySelector('main'), term);
+});
+
+// ── Paragraph builder ──
+const el = id => document.getElementById(id);
+const defaults = {
+  prompt: el('prompt').value,
+  stance: el('stance').value,
+  verb: el('verb').value,
+  claim: el('claim').value,
+  proof1: el('proof1').value,
+  proof2: el('proof2').value,
+  paystem: el('paystem').value,
+  payoffText: el('payoffText').value
+};
+
+function cap(s) {
+  s = (s || '').trim();
+  if (!s) return '';
+  if (!/[.!?…]$/.test(s)) s += '.';
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+function buildPayoff(stem, content) {
+  content = (content || '').trim();
+  if (!content) return '';
+  if (stem === 'In effect, this turns') return cap(`In effect, this turns ${content}`);
+  if (stem === 'This exposes a society that values') return cap(`This exposes a society that values ${content}`);
+  return cap(`${stem} ${content}`);
+}
+
+function generate() {
+  const stance = el('stance').value;
+  const verb = el('verb').value;
+  const claim = el('claim').value.trim();
+  const proof1 = el('proof1').value.trim();
+  const proof2 = el('proof2').value.trim();
+  const payoff = buildPayoff(el('paystem').value, el('payoffText').value);
+  const s1 = cap(`In <em>Chronicle of a Death Foretold</em>, Márquez ${verb} ${stance} the idea that ${claim.replace(/^\s*(that\s+)?/i, '')}`);
+  const s2 = cap(proof1);
+  const s3 = cap(proof2);
+  const s4 = payoff;
+  const s5 = cap(`Márquez therefore ${verb}s the tension between memory and moral responsibility as central to the novel's meaning`);
+  const para = [s1, s2, s3, s4, s5].filter(Boolean).join(' ');
+  el('out').innerHTML = `<div class="out-meta">
+    <span class="badge"><strong>Stance</strong> ${stance}</span>
+    <span class="badge"><strong>Verb</strong> ${verb}</span>
+    <span class="badge"><strong>Shape</strong> claim-led</span>
+  </div>${para}`;
+  el('out').dataset.plain = [s1.replace(/<[^>]+>/g, ''), s2, s3, s4, s5].filter(Boolean).join(' ');
+}
+
+function generateAlt() {
+  const stance = el('stance').value;
+  const verb = el('verb').value;
+  const claim = el('claim').value.trim();
+  const proof1 = el('proof1').value.trim();
+  const payoff = buildPayoff(el('paystem').value, el('payoffText').value);
+  const s1 = cap(proof1);
+  const s2 = cap(`Márquez ${verb} ${stance} that ${claim.replace(/^\s*(that\s+)?/i, '')}`);
+  const s3 = payoff;
+  const s4 = cap(`Yet the persistence of this pattern implies the issue cannot be easily resolved — only deferred`);
+  const para = [s1, s2, s3, s4].filter(Boolean).join(' ');
+  el('out2').innerHTML = `<div class="out-meta">
+    <span class="badge"><strong>Stance</strong> ${stance}</span>
+    <span class="badge"><strong>Shape</strong> evidence-first</span>
+  </div>${para}`;
+  el('altOut').style.display = 'block';
+}
+
+el('gen').addEventListener('click', generate);
+el('genAlt').addEventListener('click', () => { generate(); generateAlt(); });
+el('copy').addEventListener('click', async () => {
+  const txt = el('out').dataset.plain || el('out').textContent.trim();
+  if (!txt || txt.includes('Generate a paragraph')) return;
+  try { await navigator.clipboard.writeText(txt); alert('Paragraph copied.'); }
+  catch { prompt('Copy paragraph:', txt); }
+});
+el('clear').addEventListener('click', () => {
+  Object.entries(defaults).forEach(([k, v]) => { if (el(k)) el(k).value = v; });
+  el('out').innerHTML = `<div class="out-meta"><span class="badge"><strong>Functions</strong> claim · proof · payoff · return</span></div>Generate a paragraph to see it here.`;
+  el('altOut').style.display = 'none';
+  delete el('out').dataset.plain;
+});
+
+generate();
+</script>
+</body>
+</html>
